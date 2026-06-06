@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: siem-postgres
+    environment:
+      POSTGRES_USER: siem_user
+      POSTGRES_PASSWORD: siem_password
+      POSTGRES_DB: siem_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U siem_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: siem-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  backend:
+    build: ./backend
+    container_name: siem-backend
+    environment:
+      DATABASE_URL: postgresql://siem_user:siem_password@postgres:5432/siem_db
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      SYSLOG_HOST: 0.0.0.0
+      SYSLOG_PORT: 514
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+      - "514:514/udp"
+      - "515:515/tcp"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Frontend (Nginx)
+  frontend:
+    image: nginx:alpine
+    container_name: siem-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: siem-network

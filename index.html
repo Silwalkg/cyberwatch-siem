@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIEM Dashboard — CyberWatch Pro</title>
+  <meta name="description" content="Security Information and Event Management Dashboard for cybersecurity students. Real-time threat monitoring, event analysis, and incident response." />
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="app">
+
+  <!-- ════════════════════════════════════════════════════════
+       SIDEBAR
+       ════════════════════════════════════════════════════════ -->
+  <aside id="sidebar">
+
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="logo-icon">🛡️</div>
+      <div class="logo-text">
+        <span class="logo-title">CYBERWATCH</span>
+        <span class="logo-sub">SIEM PLATFORM</span>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <span class="sidebar-section-label">Monitoring</span>
+
+    <div class="nav-item active" data-page="overview" id="nav-overview">
+      <span class="nav-icon">📊</span>
+      <span>Overview</span>
+    </div>
+
+    <div class="nav-item" data-page="events" id="nav-events">
+      <span class="nav-icon">📡</span>
+      <span>Live Events</span>
+    </div>
+
+    <span class="sidebar-section-label">Intelligence</span>
+
+    <div class="nav-item" data-page="threats" id="nav-threats">
+      <span class="nav-icon">🌐</span>
+      <span>Threat Intel</span>
+    </div>
+
+    <div class="nav-item" data-page="network" id="nav-network">
+      <span class="nav-icon">🔌</span>
+      <span>Network Monitor</span>
+    </div>
+
+    <span class="sidebar-section-label">Response</span>
+
+    <div class="nav-item" data-page="alerts" id="nav-alerts">
+      <span class="nav-icon">🚨</span>
+      <span>Alerts &amp; Incidents</span>
+      <span class="nav-badge" id="alert-badge">5</span>
+    </div>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        <span class="status-label" style="font-size:11px;">All systems operational</span>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ════════════════════════════════════════════════════════
+       MAIN AREA
+       ════════════════════════════════════════════════════════ -->
+  <div id="main">
+
+    <!-- Header -->
+    <header id="header">
+      <div>
+        <div class="header-title" id="header-title">Overview</div>
+        <div class="header-subtitle" id="header-subtitle" style="color:var(--text-muted);font-size:12px;">Real-time security posture</div>
+      </div>
+      <div class="header-spacer"></div>
+      <div id="user-info" style="display:flex;align-items:center;gap:8px;"></div>
+      <div class="header-chip">🟢 <span>LIVE</span></div>
+      <div class="threat-level-chip">
+        <div class="threat-dot"></div>
+        THREAT LEVEL: HIGH
+      </div>
+      <div class="clock" id="clock">00:00:00</div>
+    </header>
+
+    <!-- Content -->
+    <main id="content">
+
+      <!-- ══════════════════════════════════════════════════
+           PAGE: OVERVIEW
+           ══════════════════════════════════════════════════ -->
+      <section class="page active" id="page-overview">
+
+        <!-- KPI Row -->
+        <div class="grid-4">
+          <div class="kpi-card blue">
+            <div class="kpi-icon">🌐</div>
+            <div class="kpi-label">Total Events (24h)</div>
+            <div class="kpi-value" id="kpi-total">—</div>
+            <div class="kpi-delta up">▲ +8.4% from yesterday</div>
+          </div>
+          <div class="kpi-card red">
+            <div class="kpi-icon">🔴</div>
+            <div class="kpi-label">Critical Alerts</div>
+            <div class="kpi-value" id="kpi-critical">—</div>
+            <div class="kpi-delta up">▲ +12 in last hour</div>
+          </div>
+          <div class="kpi-card green">
+            <div class="kpi-icon">🛡️</div>
+            <div class="kpi-label">Threats Blocked</div>
+            <div class="kpi-value" id="kpi-blocked">—</div>
+            <div class="kpi-delta down">▼ Block rate: 96.1%</div>
+          </div>
+          <div class="kpi-card orange">
+            <div class="kpi-icon">⏱️</div>
+            <div class="kpi-label">System Uptime</div>
+            <div class="kpi-value" id="kpi-uptime">—</div>
+            <div class="kpi-delta down">▼ SLA: 99.9% target</div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid-main" style="margin-bottom:20px;">
+          <div class="card">
+            <div class="card-title">Events Over Time (Last 30 min)</div>
+            <div class="chart-container" style="height:220px;">
+              <canvas id="chart-events-line"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Threat Severity Distribution</div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+              <div class="threat-arc-container">
+                <svg viewBox="0 0 200 110" id="gauge-svg">
+                  <!-- Background arc -->
+                  <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12" stroke-linecap="round"/>
+                  <!-- Value arc -->
+                  <path id="gauge-arc" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#ff3366" stroke-width="12" stroke-linecap="round"
+                        style="stroke-dasharray:0 220;transition:stroke-dasharray 0.8s ease, stroke 0.5s ease;"/>
+                </svg>
+                <div id="gauge-value-text">0</div>
+              </div>
+              <div id="gauge-level-text" style="font-size:12px;color:var(--text-muted);font-weight:600;letter-spacing:1px;">LOADING...</div>
+            </div>
+            <div style="margin-top:16px;">
+              <div class="chart-container" style="height:160px;">
+                <canvas id="chart-severity-donut"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Attackers Table -->
+        <div class="card">
+          <div class="card-title">Top Attack Sources</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Source IP</th>
+                <th>Country</th>
+                <th>Severity</th>
+                <th>Attack Type</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody id="top-attackers-body"></tbody>
+          </table>
+        </div>
+
+      </section>
+
+      <!-- ══════════════════════════════════════════════════
+           PAGE: LIVE EVENTS
+           ══════════════════════════════════════════════════ -->
+      <section class="page" id="page-events">
+
+        <div class="section-header">
+          <div class="section-title">
+            <span class="icon">📡</span> Live Event Stream
+            <span class="section-tag">REAL-TIME</span>
+          </div>
+          <button class="toggle-btn active" id="auto-refresh-btn" onclick="toggleAutoRefresh()">⏸ Pause Feed</button>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+          <input id="search-input" class="search-input" type="text"
+                 placeholder="Search by IP, type, protocol…" oninput="applyFilter()" />
+          <select id="sev-filter" class="filter-select" onchange="applyFilter()">
+            <option value="all">All Severities</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+          <button class="btn btn-ghost" onclick="document.getElementById('search-input').value='';document.getElementById('sev-filter').value='all';applyFilter();">
+            ✕ Clear
+          </button>
+        </div>
+
+        <!-- Event Log -->
+        <div class="card" style="padding:16px;">
+          <div class="event-log-header">
+            <span>TIME</span>
+            <span>SEV</span>
+            <span>SOURCE IP</span>
+            <span>DEST IP</span>
+            <span>DESCRIPTION</span>
+            <span>PROTO/PORT</span>
+          </div>
+          <div class="event-log" id="event-log-rows"></div>
+        </div>
+
+      </section>
+
+      <!-- ══════════════════════════════════════════════════
+           PAGE: THREAT INTELLIGENCE
+           ══════════════════════════════════════════════════ -->
+      <section class="page" id="page-threats">
+
+        <div class="section-header">
+          <div class="section-title">
+            <span class="icon">🌐</span> Threat Intelligence
+            <span class="section-tag">GLOBAL</span>
+          </div>
+        </div>
+
+        <!-- World Map -->
+        <div class="card" style="margin-bottom:20px;padding:16px;">
+          <div class="card-title">Live Global Attack Origins</div>
+          <div class="world-map-container" id="world-map-svg-container">
+            <svg id="world-map-svg" viewBox="0 0 900 400" preserveAspectRatio="xMidYMid meet">
+              <!-- Simplified world map outline (continents as paths) -->
+              <!-- North America -->
+              <path d="M 80 80 L 240 70 L 280 90 L 290 140 L 260 180 L 200 200 L 150 210 L 100 180 L 70 140 Z"
+                    fill="rgba(0,212,255,0.04)" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
+              <!-- South America -->
+              <path d="M 190 210 L 270 205 L 290 240 L 280 310 L 240 340 L 200 330 L 175 280 L 170 240 Z"
+                    fill="rgba(0,212,255,0.04)" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
+              <!-- Europe -->
+              <path d="M 440 60 L 560 55 L 575 100 L 555 130 L 500 140 L 450 135 L 430 110 Z"
+                    fill="rgba(0,212,255,0.04)" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
+              <!-- Africa -->
+              <path d="M 450 140 L 555 135 L 570 175 L 560 260 L 520 310 L 480 315 L 445 275 L 435 200 Z"
+                    fill="rgba(0,212,255,0.04)" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
+              <!-- Asia -->
+              <path d="M 555 55 L 780 50 L 800 110 L 790 170 L 740 200 L 680 215 L 600 200 L 560 170 L 545 120 Z"
+                    fill="rgba(0,212,255,0.04)" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
+              <!-- Australia -->
+              <path d="M 720 260 L 810 250 L 830 300 L 810 340 L 760 345 L 720 315 Z"
+                    fill="rgba(0,212,255,0.04)" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
+              <!-- Target: "Your Network" -->
+              <circle cx="180" cy="180" r="8" fill="rgba(0,255,157,0.3)" stroke="#00ff9d" stroke-width="2"/>
+              <circle cx="180" cy="180" r="16" fill="none" stroke="rgba(0,255,157,0.2)" stroke-width="1" stroke-dasharray="3,3"/>
+              <text x="192" y="175" fill="#00ff9d" font-size="9" font-family="Inter,sans-serif">YOUR NETWORK</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- CVE + Categories -->
+        <div class="grid-main-rev">
+          <div class="card">
+            <div class="card-title">Latest CVE Feed</div>
+            <div id="cve-feed"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Top Threat Categories (24h)</div>
+            <div class="chart-container" style="height:280px;">
+              <canvas id="chart-threat-categories"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ══════════════════════════════════════════════════
+           PAGE: NETWORK MONITOR
+           ══════════════════════════════════════════════════ -->
+      <section class="page" id="page-network">
+
+        <div class="section-header">
+          <div class="section-title">
+            <span class="icon">🔌</span> Network Monitor
+            <span class="section-tag">LIVE</span>
+          </div>
+        </div>
+
+        <!-- Traffic KPI + Sparkline -->
+        <div class="grid-main" style="margin-bottom:20px;">
+          <div class="card">
+            <div class="card-title">Network Traffic (Mbps)</div>
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px;">
+              <div class="traffic-value" id="traffic-current">—</div>
+              <span class="traffic-unit">Mbps</span>
+            </div>
+            <div class="chart-container" style="height:160px;">
+              <canvas id="chart-traffic"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Protocol Distribution</div>
+            <div class="chart-container" style="height:200px;margin-bottom:16px;">
+              <canvas id="chart-protocols"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Protocol Bars -->
+        <div class="grid-2" style="margin-bottom:20px;">
+          <div class="card">
+            <div class="card-title">Traffic by Protocol</div>
+            <div id="proto-bars"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Network Health</div>
+            <div style="display:flex;flex-direction:column;gap:12px;padding-top:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;color:var(--text-secondary);">Firewall Status</span>
+                <span class="badge badge-info">ACTIVE</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;color:var(--text-secondary);">IDS/IPS Engine</span>
+                <span class="badge badge-info">RUNNING</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;color:var(--text-secondary);">VPN Gateway</span>
+                <span class="badge badge-info">CONNECTED</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;color:var(--text-secondary);">DDoS Protection</span>
+                <span class="badge badge-info">ENABLED</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;color:var(--text-secondary);">SSL Inspection</span>
+                <span class="badge badge-medium">PARTIAL</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;color:var(--text-secondary);">Packet Capture</span>
+                <span class="badge badge-info">RECORDING</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;color:var(--text-secondary);">BGP Peers</span>
+                <span style="font-family:var(--font-mono);font-size:13px;color:var(--neon-blue);">4 / 4 UP</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;color:var(--text-secondary);">Packet Loss</span>
+                <span style="font-family:var(--font-mono);font-size:13px;color:var(--neon-green);">0.02%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Port Scan Detections -->
+        <div class="card">
+          <div class="card-title">Port Scan Detections</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Target IP</th>
+                <th>Service</th>
+                <th>Ports Scanned</th>
+                <th>Severity</th>
+                <th>Detected At</th>
+              </tr>
+            </thead>
+            <tbody id="port-scan-body"></tbody>
+          </table>
+        </div>
+
+      </section>
+
+      <!-- ══════════════════════════════════════════════════
+           PAGE: ALERTS & INCIDENTS
+           ══════════════════════════════════════════════════ -->
+      <section class="page" id="page-alerts">
+
+        <div class="section-header">
+          <div class="section-title">
+            <span class="icon">🚨</span> Alerts &amp; Incidents
+            <span class="section-tag">RESPONSE</span>
+          </div>
+          <button class="btn btn-danger" onclick="renderAlerts ? renderAlerts() : location.reload()">🔄 Refresh</button>
+        </div>
+
+        <div class="grid-main-rev">
+          <!-- Alert Cards -->
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">
+              Active Alerts
+            </div>
+            <div id="alerts-list"></div>
+          </div>
+
+          <!-- Incident Timeline -->
+          <div class="card" style="height:fit-content;">
+            <div class="card-title">Incident Timeline</div>
+            <div class="timeline" id="incident-timeline"></div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="js/data.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

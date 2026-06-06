@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberWatch SIEM — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080c14;
+      --card:      rgba(13, 20, 40, 0.85);
+      --border:    rgba(99, 179, 237, 0.15);
+      --blue:      #00d4ff;
+      --green:     #00ff9d;
+      --red:       #ff3366;
+      --purple:    #b44dff;
+      --t1:        #e8f0fe;
+      --t2:        #8899bb;
+      --tm:        #4a5a7a;
+      --mono:      'JetBrains Mono', monospace;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      overflow: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(0,212,255,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 80% 85%, rgba(180,77,255,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 55% 45%, rgba(0,255,157,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* Grid dots */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        radial-gradient(circle, rgba(0,212,255,0.06) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    .page {
+      position: relative; z-index: 1;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    /* Brand */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 36px;
+    }
+
+    .brand-icon {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 0 30px rgba(0,212,255,0.35);
+    }
+
+    .brand-text { display: flex; flex-direction: column; }
+
+    .brand-name {
+      font-size: 22px; font-weight: 800; letter-spacing: 3px;
+      background: linear-gradient(90deg, var(--blue), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .brand-sub {
+      font-size: 10px; color: var(--tm); letter-spacing: 2px;
+      font-weight: 500; text-transform: uppercase; margin-top: 2px;
+    }
+
+    /* Card */
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      backdrop-filter: blur(24px);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,212,255,0.05) inset;
+    }
+
+    .card-title {
+      font-size: 18px; font-weight: 700;
+      color: var(--t1);
+      margin-bottom: 4px;
+    }
+
+    .card-sub {
+      font-size: 13px; color: var(--t2);
+      margin-bottom: 28px;
+    }
+
+    /* Form */
+    .field { margin-bottom: 18px; }
+
+    .field label {
+      display: block;
+      font-size: 11px; font-weight: 600;
+      color: var(--tm); letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .field input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--t1);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field input:focus {
+      border-color: rgba(0,212,255,0.5);
+      box-shadow: 0 0 0 3px rgba(0,212,255,0.08);
+    }
+
+    .field input::placeholder { color: var(--tm); }
+
+    /* Remember row */
+    .row-between {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 22px;
+    }
+
+    .remember {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--t2);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .remember input[type=checkbox] {
+      width: 15px; height: 15px;
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+
+    .forgot {
+      font-size: 12px; color: var(--blue);
+      text-decoration: none;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .forgot:hover { opacity: 1; }
+
+    /* Submit button */
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.18), rgba(180,77,255,0.14));
+      border: 1px solid rgba(0,212,255,0.35);
+      border-radius: 10px;
+      color: var(--blue);
+      font-size: 14px; font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.25s;
+      font-family: 'Inter', sans-serif;
+      position: relative; overflow: hidden;
+    }
+
+    .btn-login:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(0,212,255,0.26), rgba(180,77,255,0.2));
+      box-shadow: 0 0 24px rgba(0,212,255,0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn-login:active { transform: translateY(0); }
+
+    .btn-login:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    /* Error message */
+    .error-msg {
+      display: none;
+      background: rgba(255,51,102,0.1);
+      border: 1px solid rgba(255,51,102,0.3);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--red);
+      font-size: 13px;
+      margin-top: 14px;
+      text-align: center;
+    }
+
+    .error-msg.show { display: block; }
+
+    /* Divider */
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 22px 0;
+      color: var(--tm); font-size: 11px; letter-spacing: 1px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Demo hint */
+    .demo-hint {
+      background: rgba(0,255,157,0.06);
+      border: 1px solid rgba(0,255,157,0.18);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--t2);
+      line-height: 1.6;
+    }
+
+    .demo-hint strong { color: var(--green); }
+
+    /* Status bar */
+    .status-bar {
+      position: fixed; bottom: 24px;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; color: var(--tm);
+      font-family: var(--mono);
+    }
+
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    /* Version tag */
+    .version {
+      position: fixed; bottom: 24px; right: 28px;
+      font-size: 10px; color: var(--tm);
+      font-family: var(--mono);
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Brand -->
+  <div class="brand">
+    <div class="brand-icon">&#x1F6E1;&#xFE0F;</div>
+    <div class="brand-text">
+      <span class="brand-name">CYBERWATCH</span>
+      <span class="brand-sub">SIEM Platform v2.0</span>
+    </div>
+  </div>
+
+  <!-- Login card -->
+  <div class="card">
+    <div class="card-title">Sign in to your account</div>
+    <div class="card-sub">Enter your credentials to access the dashboard</div>
+
+    <form id="login-form" onsubmit="handleLogin(event)" novalidate>
+
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username"
+               placeholder="analyst" autocomplete="username"
+               spellcheck="false" required />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password"
+               placeholder="&#xB7;&#xB7;&#xB7;&#xB7;&#xB7;&#xB7;&#xB7;&#xB7;" autocomplete="current-password" required />
+      </div>
+
+      <div class="row-between">
+        <label class="remember">
+          <input type="checkbox" id="remember" />
+          Remember me
+        </label>
+        <a href="#" class="forgot" onclick="return false;">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn-login" id="login-btn">
+        Sign In &rarr;
+      </button>
+
+      <div class="error-msg" id="error-msg">
+        Invalid credentials. Please try again.
+      </div>
+
+    </form>
+
+    <div class="divider">DEMO MODE</div>
+
+    <div class="demo-hint">
+      <strong>Any credentials work in demo mode.</strong><br>
+      Use <strong>admin</strong> as username for Administrator role,
+      or any other username for SOC Analyst access.
+    </div>
+  </div>
+
+</div>
+
+<!-- Status bar -->
+<div class="status-bar">
+  <div class="status-dot"></div>
+  <span>System operational &mdash; all services running</span>
+</div>
+
+<div class="version">CW-SIEM v2.0.0</div>
+
+<script src="js/data.js"></script>
+<script>
+  /* Redirect if already logged in */
+  if (Auth.isLoggedIn()) {
+    window.location.href = 'index.html';
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const btn      = document.getElementById('login-btn');
+    const errEl    = document.getElementById('error-msg');
+
+    if (!username || !password) {
+      errEl.textContent = 'Please enter both username and password.';
+      errEl.classList.add('show');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+    errEl.classList.remove('show');
+
+    /* Simulate a brief network delay for realism */
+    setTimeout(function () {
+      const ok = Auth.login(username, password);
+      if (ok) {
+        btn.textContent = 'Success! Redirecting...';
+        setTimeout(function () {
+          window.location.href = 'index.html';
+        }, 400);
+      } else {
+        errEl.textContent = 'Invalid credentials. Please try again.';
+        errEl.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Sign In \u2192';
+      }
+    }, 600);
+  }
+
+  /* Allow Enter key on username field to advance to password */
+  document.getElementById('username').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('password').focus();
+    }
+  });
+</script>
+</body>
+</html>
