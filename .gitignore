@@ -87,3 +87,12 @@ temp/
 
 # GeoIP database (large file)
 GeoLite2-City.mmdb
+
+# SQLite
+*.db
+*.db-journal
+
+# Python
+__pycache__/
+*.pyc
+.env
