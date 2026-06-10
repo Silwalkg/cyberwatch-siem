@@ -383,7 +383,7 @@ body::before {
 .kpi-delta.down { color: var(--neon-green); }
 .kpi-icon {
   position: absolute; right: 16px; top: 16px;
-  font-size: 28px; opacity: 0.15;
+  font-size: 28px; opacity: 0.6;
 }
 
 .kpi-card.blue  .kpi-value { color: var(--neon-blue); }
