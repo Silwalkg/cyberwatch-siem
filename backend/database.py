@@ -119,3 +119,5 @@ def init_db():
     if db.query(Event).count() == 0:
         seed_database(db)
     db.close()
+
+# End of database module
