@@ -327,3 +327,5 @@ const SIEM_DATA = (function () {
     updateAlertStatus,
   };
 })();
+
+// CVE data sourced from NVD - National Vulnerability Database
