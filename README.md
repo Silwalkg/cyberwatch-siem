@@ -132,3 +132,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 | GET | /api/incidents | Open incidents |
 | GET | /api/dashboard/summary | KPI summary |
 | WS | /ws/events | Live WebSocket feed |
+
+## Screenshots
+
+> Login page, Overview dashboard, Live Events feed, Threat Intelligence map, Network Monitor, Alerts & Incidents
