@@ -557,3 +557,5 @@
   document.addEventListener('DOMContentLoaded', init);
 
 })();
+
+// Dashboard v2.0 - Full stack with FastAPI backend
