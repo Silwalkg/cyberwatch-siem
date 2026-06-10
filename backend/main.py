@@ -235,3 +235,4 @@ async def websocket_events(ws: WebSocket, db: Session = Depends(get_db)):
 @app.get("/api/health")
 def health():
     return {"status": "ok", "version": "2.0.0"}
+
