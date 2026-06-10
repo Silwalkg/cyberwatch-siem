@@ -118,3 +118,17 @@ cyberwatch-siem/
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/health | Health check |
+| POST | /api/auth/token | Login, get JWT |
+| GET | /api/events | Security events |
+| GET | /api/events/stats | Event statistics |
+| GET | /api/alerts | Active alerts |
+| PATCH | /api/alerts/{id} | Update alert |
+| GET | /api/incidents | Open incidents |
+| GET | /api/dashboard/summary | KPI summary |
+| WS | /ws/events | Live WebSocket feed |
