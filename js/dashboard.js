@@ -25,6 +25,55 @@
   let liveEventsFromAPI  = [];   // real events from backend
   let usingLiveData      = false;
 
+  // -- Role-Based Access Control ----------------------------
+  const ROLE_PERMISSIONS = {
+    'Administrator': ['overview', 'events', 'threats', 'network', 'alerts'],
+    'SOC Analyst':   ['overview', 'events', 'alerts'],
+  };
+
+  function getPermissions() {
+    const role = Auth.getRole();
+    return ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS['SOC Analyst'];
+  }
+
+  function canAccess(pageId) {
+    return getPermissions().includes(pageId);
+  }
+
+  function isAdmin() {
+    return Auth.getRole() === 'Administrator';
+  }
+
+  function applyRoleUI() {
+    const role = Auth.getRole();
+    const allowed = getPermissions();
+
+    // Hide/show nav items based on role
+    document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+      const page = item.dataset.page;
+      if (!allowed.includes(page)) {
+        item.style.opacity = '0.35';
+        item.style.pointerEvents = 'none';
+        item.title = 'Access restricted - Administrator only';
+        const lockBadge = document.createElement('span');
+        lockBadge.textContent = '??';
+        lockBadge.style.marginLeft = 'auto';
+        lockBadge.style.fontSize = '11px';
+        item.appendChild(lockBadge);
+      }
+    });
+
+    // Show role badge in header
+    const userEl = document.getElementById('user-info');
+    if (userEl && role === 'SOC Analyst') {
+      const badge = document.createElement('span');
+      badge.style.cssText = 'background:rgba(255,214,10,0.15);border:1px solid rgba(255,214,10,0.4);color:#ffd60a;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:0.5px;';
+      badge.textContent = 'LIMITED ACCESS';
+      userEl.prepend(badge);
+    }
+  }
+
+
   // -- Clock -------------------------------------------------
   function updateClock() {
     const d = new Date(), pad = n => String(n).padStart(2,'0');
@@ -61,6 +110,11 @@
     document.getElementById('header-title').textContent    = titles[pageId] || pageId;
     document.getElementById('header-subtitle').textContent = subs[pageId]   || '';
     currentPage = pageId;
+    // Role check - block restricted pages
+    if (!canAccess(pageId)) {
+      showAccessDenied(pageId);
+      return;
+    }
     if (pageId === 'overview') { initOverviewCharts(); refreshOverview(); }
     if (pageId === 'threats')  { initThreatCharts(); renderWorldMap(); }
     if (pageId === 'network')  initNetworkCharts();
@@ -68,6 +122,36 @@
     if (pageId === 'alerts')   loadAlertsPage();
   }
 
+
+  // -- Access Denied Page ------------------------------------
+  function showAccessDenied(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    // Create or reuse access denied page
+    let deniedPage = document.getElementById('page-denied');
+    if (!deniedPage) {
+      deniedPage = document.createElement('section');
+      deniedPage.id = 'page-denied';
+      deniedPage.className = 'page';
+      deniedPage.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:20px;">
+          <div style="font-size:64px;">??</div>
+          <div style="font-size:24px;font-weight:700;color:#ff3366;">Access Restricted</div>
+          <div style="font-size:14px;color:#8899bb;text-align:center;max-width:400px;">
+            This page requires <strong style="color:#ffd60a;">Administrator</strong> role.<br>
+            Your current role is <strong style="color:#00d4ff;">${Auth.getRole()}</strong>.
+          </div>
+          <div style="font-size:12px;color:#4a5a7a;">Contact your system administrator to request access.</div>
+          <button class="btn btn-ghost" onclick="navigateTo('overview')" style="margin-top:10px;">? Back to Overview</button>
+        </div>
+      `;
+      document.getElementById('content').appendChild(deniedPage);
+    }
+    deniedPage.classList.add('active');
+    document.getElementById('header-title').textContent = 'Access Denied';
+    document.getElementById('header-subtitle').textContent = 'Insufficient permissions';
+  }
   // -- Overview: fetch real KPIs -----------------------------
   async function refreshOverview() {
     const data = await SIEM_DATA.fetchDashboard(24);
@@ -559,3 +643,8 @@
 })();
 
 // Dashboard v2.0 - Full stack with FastAPI backend
+
+
+
+
+
