@@ -502,7 +502,7 @@
       return;
     }
     container.innerHTML = apiAlerts.map(a => {
-      const icons = { critical:'??', high:'??', medium:'??', low:'??', info:'?' };
+      const icons = { critical:'🔴', high:'🟠', medium:'🟡', low:'🔵', info:'🟢' };
       const icon  = icons[a.severity] || '?';
       const ackd  = a.status === 'acknowledged';
       return `
@@ -643,6 +643,7 @@
 })();
 
 // Dashboard v2.0 - Full stack with FastAPI backend
+
 
 
 
