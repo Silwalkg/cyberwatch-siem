@@ -108,13 +108,6 @@ cyberwatch-siem/
 
 ---
 
-## Author
-
-**Kulan Silwalkg**
-[GitHub](https://github.com/Silwalkg)
-
----
-
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
@@ -136,3 +129,12 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 ## Screenshots
 
 > Login page, Overview dashboard, Live Events feed, Threat Intelligence map, Network Monitor, Alerts & Incidents
+
+---
+
+## Author
+
+**Kulan Silwalkg**
+[GitHub](https://github.com/Silwalkg)
+
+
