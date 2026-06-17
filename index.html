@@ -51,7 +51,7 @@
       <span>Network Monitor</span>
     </div>
 
-    <span class="sidebar-section-label">Response</span>
+    <span class="sidebar-section-label">Administration</span>
 
     <div class="nav-item" data-page="alerts" id="nav-alerts">
       <span class="nav-icon">🚨</span>
@@ -60,6 +60,14 @@
     </div>
 
     <!-- Footer -->
+
+    <span class="sidebar-section-label">Administration</span>
+
+    <div class="nav-item" data-page="users" id="nav-users">
+      <span class="nav-icon">&#x1F465;</span>
+      <span>User Management</span>
+    </div>
+
     <div class="sidebar-footer">
       <div class="status-indicator">
         <div class="status-dot"></div>
@@ -409,6 +417,85 @@
 
       </section>
 
+      <!-- --------------------------------------------------
+           PAGE: USER MANAGEMENT (Admin only)
+           -------------------------------------------------- -->
+      <section class="page" id="page-users">
+
+        <div class="section-header">
+          <div class="section-title">
+            <span class="icon">??</span> User Management
+            <span class="section-tag">ADMIN ONLY</span>
+          </div>
+          <button class="btn btn-primary" onclick="showAddUserModal()">+ Add User</button>
+        </div>
+
+        <!-- User KPIs -->
+        <div class="grid-3" style="margin-bottom:20px;" id="user-kpis">
+          <div class="card" style="text-align:center;padding:16px;">
+            <div class="kpi-label">Total Users</div>
+            <div class="kpi-value" id="kpi-users-total" style="font-size:28px;color:var(--neon-blue);">-</div>
+          </div>
+          <div class="card" style="text-align:center;padding:16px;">
+            <div class="kpi-label">Administrators</div>
+            <div class="kpi-value" id="kpi-users-admin" style="font-size:28px;color:var(--neon-red);">-</div>
+          </div>
+          <div class="card" style="text-align:center;padding:16px;">
+            <div class="kpi-label">SOC Analysts</div>
+            <div class="kpi-value" id="kpi-users-analyst" style="font-size:28px;color:var(--neon-green);">-</div>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card">
+          <div class="card-title">All Users</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Add User Modal -->
+        <div id="user-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;">
+          <div class="card" style="width:400px;padding:28px;position:relative;">
+            <div style="font-size:16px;font-weight:700;margin-bottom:20px;" id="modal-title">Add New User</div>
+
+            <div style="margin-bottom:14px;">
+              <label style="font-size:11px;color:var(--text-muted);font-weight:700;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;">Username</label>
+              <input id="modal-username" type="text" class="search-input" style="width:100%;" placeholder="Enter username" />
+            </div>
+
+            <div style="margin-bottom:14px;">
+              <label style="font-size:11px;color:var(--text-muted);font-weight:700;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;">Password</label>
+              <input id="modal-password" type="password" class="search-input" style="width:100%;" placeholder="Enter password" />
+            </div>
+
+            <div style="margin-bottom:20px;">
+              <label style="font-size:11px;color:var(--text-muted);font-weight:700;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;">Role</label>
+              <select id="modal-role" class="filter-select" style="width:100%;">
+                <option value="SOC Analyst">SOC Analyst</option>
+                <option value="Administrator">Administrator</option>
+              </select>
+            </div>
+
+            <div id="modal-error" style="display:none;color:var(--neon-red);font-size:12px;margin-bottom:12px;"></div>
+
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+              <button class="btn btn-ghost" onclick="closeUserModal()">Cancel</button>
+              <button class="btn btn-primary" onclick="submitUserModal()" id="modal-submit-btn">Create User</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
     </main>
   </div>
 </div>
@@ -418,3 +505,5 @@
 <script src="js/dashboard.js"></script>
 </body>
 </html>
+
+

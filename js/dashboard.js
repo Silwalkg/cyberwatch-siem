@@ -27,7 +27,7 @@
 
   // -- Role-Based Access Control ----------------------------
   const ROLE_PERMISSIONS = {
-    'Administrator': ['overview', 'events', 'threats', 'network', 'alerts'],
+    'Administrator': ['overview', 'events', 'threats', 'network', 'alerts', 'users'],
     'SOC Analyst':   ['overview', 'events', 'alerts'],
   };
 
@@ -105,8 +105,8 @@
     const nav  = document.querySelector(`.nav-item[data-page="${pageId}"]`);
     if (page) page.classList.add('active');
     if (nav)  nav.classList.add('active');
-    const titles = { overview:'Overview', events:'Live Events Feed', threats:'Threat Intelligence', network:'Network Monitor', alerts:'Alerts & Incidents' };
-    const subs   = { overview:'Real-time security posture', events:'Live log stream with filtering', threats:'Global threat landscape', network:'Traffic & protocol analysis', alerts:'Active incidents & response' };
+    const titles = { users:'User Management', overview:'Overview', events:'Live Events Feed', threats:'Threat Intelligence', network:'Network Monitor', alerts:'Alerts & Incidents' };
+    const subs   = { users:'Manage system users and roles', overview:'Real-time security posture', events:'Live log stream with filtering', threats:'Global threat landscape', network:'Traffic & protocol analysis', alerts:'Active incidents & response' };
     document.getElementById('header-title').textContent    = titles[pageId] || pageId;
     document.getElementById('header-subtitle').textContent = subs[pageId]   || '';
     currentPage = pageId;
@@ -120,6 +120,7 @@
     if (pageId === 'network')  initNetworkCharts();
     if (pageId === 'events')   { loadLiveEvents(); renderEventLog(); }
     if (pageId === 'alerts')   loadAlertsPage();
+    if (pageId === 'users')    loadUsersPage();
   }
 
 
@@ -608,6 +609,146 @@
     if (currentPage === 'events') loadLiveEvents();
   };
 
+  
+  // -- User Management -------------------------------------
+  let editingUserId = null;
+
+  async function loadUsersPage() {
+    const token = Auth.getToken();
+    try {
+      const res = await fetch('http://localhost:8000/api/users', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (!res.ok) throw new Error('Failed');
+      const users = await res.json();
+      renderUsersTable(users);
+    } catch (e) {
+      document.getElementById('users-table-body').innerHTML =
+        '<tr><td colspan="5" class="empty-state">Could not load users. Make sure backend is running.</td></tr>';
+    }
+  }
+
+  function renderUsersTable(users) {
+    const admins  = users.filter(u => u.role === 'Administrator').length;
+    const analysts = users.filter(u => u.role === 'SOC Analyst').length;
+
+    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setEl('kpi-users-total',   users.length);
+    setEl('kpi-users-admin',   admins);
+    setEl('kpi-users-analyst', analysts);
+
+    const tbody = document.getElementById('users-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = users.map((u, i) => `
+      <tr>
+        <td style="color:var(--text-muted);font-family:var(--font-mono);font-size:11px;">#${i+1}</td>
+        <td style="font-weight:600;color:var(--text-primary);">
+          ${u.username === Auth.getUsername() ? '?? ' : ''}${u.username}
+        </td>
+        <td>
+          <span class="badge ${u.role === 'Administrator' ? 'badge-critical' : 'badge-info'}">
+            ${u.role}
+          </span>
+        </td>
+        <td style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">
+          ${new Date(u.created_at).toLocaleDateString()}
+        </td>
+        <td>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;"
+              onclick="showEditUserModal(${u.id}, '${u.username}', '${u.role}')">
+              ?? Edit
+            </button>
+            ${u.username !== Auth.getUsername() ? `
+            <button class="btn btn-danger" style="font-size:11px;padding:4px 10px;"
+              onclick="deleteUser(${u.id}, '${u.username}')">
+              ??? Delete
+            </button>` : '<span style="font-size:11px;color:var(--text-muted);">Current user</span>'}
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  window.showAddUserModal = function() {
+    editingUserId = null;
+    document.getElementById('modal-title').textContent = 'Add New User';
+    document.getElementById('modal-username').value = '';
+    document.getElementById('modal-username').disabled = false;
+    document.getElementById('modal-password').value = '';
+    document.getElementById('modal-password').placeholder = 'Enter password';
+    document.getElementById('modal-role').value = 'SOC Analyst';
+    document.getElementById('modal-submit-btn').textContent = 'Create User';
+    document.getElementById('modal-error').style.display = 'none';
+    const modal = document.getElementById('user-modal');
+    modal.style.display = 'flex';
+  };
+
+  window.showEditUserModal = function(id, username, role) {
+    editingUserId = id;
+    document.getElementById('modal-title').textContent = 'Edit User: ' + username;
+    document.getElementById('modal-username').value = username;
+    document.getElementById('modal-username').disabled = true;
+    document.getElementById('modal-password').value = '';
+    document.getElementById('modal-password').placeholder = 'Leave blank to keep current password';
+    document.getElementById('modal-role').value = role;
+    document.getElementById('modal-submit-btn').textContent = 'Save Changes';
+    document.getElementById('modal-error').style.display = 'none';
+    const modal = document.getElementById('user-modal');
+    modal.style.display = 'flex';
+  };
+
+  window.closeUserModal = function() {
+    document.getElementById('user-modal').style.display = 'none';
+    editingUserId = null;
+  };
+
+  window.submitUserModal = async function() {
+    const username = document.getElementById('modal-username').value.trim();
+    const password = document.getElementById('modal-password').value;
+    const role     = document.getElementById('modal-role').value;
+    const errEl    = document.getElementById('modal-error');
+    const token    = Auth.getToken();
+
+    if (!username) { errEl.textContent = 'Username is required'; errEl.style.display = 'block'; return; }
+    if (!editingUserId && !password) { errEl.textContent = 'Password is required'; errEl.style.display = 'block'; return; }
+
+    try {
+      let res;
+      if (editingUserId) {
+        res = await fetch('http://localhost:8000/api/users/' + editingUserId, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ role, password: password || undefined })
+        });
+      } else {
+        res = await fetch('http://localhost:8000/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ username, password, role })
+        });
+      }
+      const data = await res.json();
+      if (!res.ok) { errEl.textContent = data.detail || 'Error occurred'; errEl.style.display = 'block'; return; }
+      closeUserModal();
+      loadUsersPage();
+    } catch(e) {
+      errEl.textContent = 'Backend connection failed'; errEl.style.display = 'block';
+    }
+  };
+
+  window.deleteUser = async function(id, username) {
+    if (!confirm(`Delete user "${username}"? This cannot be undone.`)) return;
+    const token = Auth.getToken();
+    try {
+      const res = await fetch('http://localhost:8000/api/users/' + id, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (res.ok) loadUsersPage();
+    } catch(e) {}
+  };
+
   // -- Main Tick --------------------------------------------
   function tick() {
     updateClock();
@@ -643,6 +784,8 @@
 })();
 
 // Dashboard v2.0 - Full stack with FastAPI backend
+
+
 
 
 
