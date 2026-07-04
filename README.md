@@ -55,6 +55,22 @@ cd cyberwatch-siem
    - Username: `analyst` → SOC Analyst role
    - Password: anything
 
+### Run with Backend
+
+1. Copy the env template and set a real secret key:
+```bash
+cd backend
+cp .env.example .env
+# Edit .env — set SECRET_KEY to a long random string
+# Set DEMO_MODE=true if you want to allow any password (dev only)
+```
+
+2. Install dependencies and start:
+```bash
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
 ### Run with Docker
 
 ```bash
@@ -71,16 +87,18 @@ Then open `http://localhost` in your browser.
 cyberwatch-siem/
 ├── index.html              # Main dashboard
 ├── login.html              # Login page
-├── dashboard-simple.html   # Simplified dashboard version
 ├── css/
 │   └── style.css           # Design system & component styles
 ├── js/
 │   ├── data.js             # Mock data, Auth, LiveFeed, API wrappers
 │   └── dashboard.js        # App logic, routing, charts, WebSocket
 ├── backend/                # FastAPI backend (optional)
+│   ├── main.py             # API routes & WebSocket feed
+│   ├── auth.py             # JWT auth (SECRET_KEY via env var)
+│   ├── database.py         # SQLAlchemy models & seed data
+│   └── .env.example        # Environment variable template
 ├── nginx.conf              # Nginx configuration
-├── docker-compose.yml      # Docker setup
-└── DEPLOYMENT.md           # Deployment guide
+└── docker-compose.yml      # Docker setup
 ```
 
 ---
