@@ -5,8 +5,16 @@
    ============================================================ */
 
 /* ── Config ──────────────────────────────────────────────── */
-const API_BASE = 'http://localhost:8000/api';
-const WS_URL   = 'ws://localhost:8000/ws/events';
+// Detect whether we're being served through a reverse proxy (nginx on port 80/443)
+// or hitting the backend directly (dev mode on port 8000).
+// This means the same build works both locally and in Docker without changes.
+const _isDev = window.location.port === '8000' || window.location.protocol === 'file:';
+const API_BASE = _isDev
+  ? 'http://localhost:8000/api'
+  : `${window.location.protocol}//${window.location.host}/api`;
+const WS_URL = _isDev
+  ? 'ws://localhost:8000/ws/events'
+  : `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws/events`;
 
 /* ============================================================
    AUTH

@@ -73,11 +73,20 @@ uvicorn main:app --reload
 
 ### Run with Docker
 
+1. Create a `.env` file in the project root with your secret key:
+```bash
+echo "SECRET_KEY=$(python -c 'import secrets; print(secrets.token_hex(32))')" > .env
+echo "DEMO_MODE=true" >> .env
+```
+
+2. Build and start:
 ```bash
 docker-compose up --build
 ```
 
 Then open `http://localhost` in your browser.
+
+The setup runs two containers: the FastAPI backend and an Nginx frontend. The SQLite database is stored on a named Docker volume so data persists across restarts.
 
 ---
 

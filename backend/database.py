@@ -1,12 +1,20 @@
+import os
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import random
 
-DATABASE_URL = "sqlite:///./cyberwatch.db"
+# Read from env so Docker / production can override.
+# Defaults to a local SQLite file for dev without Docker.
+# When running in Docker the compose file mounts a named volume at /app/data,
+# so we store the DB there to survive container restarts.
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./cyberwatch.db")
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# SQLite needs check_same_thread=False; ignored by other drivers
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

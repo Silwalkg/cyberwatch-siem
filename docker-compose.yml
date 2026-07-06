@@ -1,75 +1,46 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: siem-postgres
-    environment:
-      POSTGRES_USER: siem_user
-      POSTGRES_PASSWORD: siem_password
-      POSTGRES_DB: siem_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U siem_user"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: siem-redis
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # FastAPI Backend
+  # FastAPI backend — SQLite, no external DB required
   backend:
     build: ./backend
     container_name: siem-backend
     environment:
-      DATABASE_URL: postgresql://siem_user:siem_password@postgres:5432/siem_db
-      API_HOST: 0.0.0.0
-      API_PORT: 8000
-      SYSLOG_HOST: 0.0.0.0
-      SYSLOG_PORT: 514
-      LOG_LEVEL: INFO
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY env var is required}
+      DEMO_MODE: ${DEMO_MODE:-false}
+      # CORS_ORIGINS restricts which frontend origins may call the API.
+      # When running via this compose file the frontend is served by nginx
+      # on the same host, so restrict to localhost by default.
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
     ports:
       - "8000:8000"
-      - "514:514/udp"
-      - "515:515/tcp"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     volumes:
-      - ./backend:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+      # Persist the SQLite database across container restarts
+      - siem_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
 
-  # Frontend (Nginx)
+  # Nginx — serves the static frontend and proxies /api/ and /ws/ to backend
   frontend:
     image: nginx:alpine
     container_name: siem-frontend
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
-  postgres_data:
+  siem_data:
 
 networks:
   default:
