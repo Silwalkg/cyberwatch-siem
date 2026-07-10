@@ -9,6 +9,8 @@ services:
     environment:
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY env var is required}
       DEMO_MODE: ${DEMO_MODE:-false}
+      # SQLite DB stored on the named volume so data survives container recreation.
+      DATABASE_URL: sqlite:////app/data/cyberwatch.db
       # CORS_ORIGINS restricts which frontend origins may call the API.
       # When running via this compose file the frontend is served by nginx
       # on the same host, so restrict to localhost by default.
