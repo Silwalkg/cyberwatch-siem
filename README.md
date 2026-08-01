@@ -135,6 +135,18 @@ cyberwatch-siem/
 
 ---
 
+## Screenshots
+
+![Overview Dashboard](screenshots/overview.png)
+
+![Live Events Feed](screenshots/live-events.png)
+
+![Alerts & Incidents](screenshots/alerts.png)
+
+![User Management](screenshots/user-management.png)
+
+---
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
@@ -151,6 +163,10 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 | PATCH | /api/alerts/{id} | Update alert |
 | GET | /api/incidents | Open incidents |
 | GET | /api/dashboard/summary | KPI summary |
+| GET | /api/users | List users (admin only) |
+| POST | /api/users | Create user (admin only) |
+| PATCH | /api/users/{id} | Edit user (admin only) |
+| DELETE | /api/users/{id} | Delete user (admin only) |
 | WS | /ws/events | Live WebSocket feed |
 
 ---
