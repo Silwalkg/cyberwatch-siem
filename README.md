@@ -135,18 +135,6 @@ cyberwatch-siem/
 
 ---
 
-## Screenshots
-
-![Overview Dashboard](screenshots/overview.png)
-
-![Live Events Feed](screenshots/live-events.png)
-
-![Alerts & Incidents](screenshots/alerts.png)
-
-![User Management](screenshots/user-management.png)
-
----
-
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
